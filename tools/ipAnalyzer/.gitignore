@@ -1,0 +1,5 @@
+# git ignore something
+cache/
+.idea
+bin/
+*.log

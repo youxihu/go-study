@@ -64,10 +64,10 @@ func GetAnomalyIPs(entries []logparser.LogEntry, threshold int, windowDuration t
 }
 
 func GetProjectType(logFile string) string {
-	if strings.Contains(logFile, "www.mod.gov.cn") {
-		return "mod"
-	} else if strings.Contains(logFile, "www.ccdi.gov.cn") {
-		return "ccdi"
+	if strings.Contains(logFile, "www.51bbz.com.log") {
+		return "BBZ"
+	} else if strings.Contains(logFile, "online.biaobiaoxing.com.log") {
+		return "BBX"
 	}
 	return "unknown"
 }

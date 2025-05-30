@@ -12,7 +12,7 @@ import (
 
 func RunAnalysis() {
 	// 1. 加载 Nacos 认证配置
-	nacosConfig, err := nacos.LoadNacosAuth("/home/youxihu/secret/aiops/ipanalyzer/nacos_auth.yaml")
+	nacosConfig, err := nacos.LoadNacosAuth("/home/youxihu/secret/aiops/ipanalyzer/localtest_nacos_auth.yaml")
 	if err != nil {
 		log.Fatalf("加载 Nacos 认证失败: %v", err)
 	}
@@ -29,7 +29,6 @@ func RunAnalysis() {
 	if err != nil {
 		log.Fatalf("解析配置失败: %v", err)
 	}
-
 	// 4. 初始化 geolocation 模块
 	err = geolocation.InitIp2Region(appConfig.DBFilePath.IP2RegionDBPath)
 	if err != nil {
@@ -42,7 +41,7 @@ func RunAnalysis() {
 	// 启动多个 goroutine 处理日志文件
 	for _, logFile := range appConfig.LogFilesPath {
 		wg.Add(1)
-		go ProcessLogFile(logFile, appConfig.DBFilePath.ASNDBPath, appConfig.DBFilePath.IP2RegionDBPath, appConfig.DingTalkWebhook, &wg, resultChan)
+		go ProcessLogFile(logFile, &wg, resultChan)
 	}
 
 	// 等待所有 goroutine 完成
@@ -54,7 +53,7 @@ func RunAnalysis() {
 	// 收集中间结果并发送通知
 	for anomalyIPs := range resultChan {
 		for _, item := range anomalyIPs {
-			geolocation.LookupLocationWithCount(item.IP, item.Count, appConfig.DBFilePath.ASNDBPath, item.ProjectType, appConfig.DingTalkWebhook, appConfig.WhiteList)
+			geolocation.LookupLocationWithCount(item.IP, item.Count, appConfig.DBFilePath.ASNDBPath, appConfig.DBFilePath.CITYDBPath, item.ProjectType, appConfig.DingTalkWebhook, appConfig.WhiteList)
 		}
 	}
 	log.Println("所有日志文件分析完成")

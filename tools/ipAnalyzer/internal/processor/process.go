@@ -13,7 +13,7 @@ const (
 	windowDuration = 5 * time.Minute // 时间窗口
 )
 
-func ProcessLogFile(logFile string, asnDBPath, ip2regionDBPath, webhookURL string, wg *sync.WaitGroup, resultChan chan<- []ipstat.IPStat) {
+func ProcessLogFile(logFile string, wg *sync.WaitGroup, resultChan chan<- []ipstat.IPStat) {
 	defer wg.Done()
 
 	log.Printf("正在分析日志文件: %s\n", logFile)
