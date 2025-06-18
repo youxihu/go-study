@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"io"
 	"log"
 	"os"
@@ -11,30 +12,32 @@ import (
 	dt "github.com/youxihu/dingtalk/dingtalk"
 )
 
-// 定义域名数组
-var domains = []string{
-	"www.mps.gov.cn",
-	"www.mod.gov.cn",
-	"www.ccdi.gov.cn",
+// 配置结构体
+type DingTalkConfig struct {
+	WebhookURL string   `yaml:"webhook_url"`
+	Secret     string   `yaml:"secret"`
+	AtMobiles  []string `yaml:"at_mobiles"`
+	IsAtAll    bool     `yaml:"is_at_all"`
+}
+
+type Config struct {
+	Domains  []string       `yaml:"domains"`
+	DingTalk DingTalkConfig `yaml:"dingtalk"`
 }
 
 // 日志文件路径
 const logFilePath = "/notice/ssl_check.log"
+const configPath = "/notice/ssl_check.yaml"
 
 // 初始化日志记录器，同时输出到控制台和日志文件
 func initLogger() {
-	// 打开或创建日志文件
 	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 	if err != nil {
 		log.Fatalf("无法打开日志文件: %v", err)
 	}
-
-	// 多写入器：同时写入到控制台和文件
 	multiWriter := io.MultiWriter(os.Stdout, logFile)
-
-	// 设置默认日志输出
 	log.SetOutput(multiWriter)
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile) // 包含日期、时间、文件行号
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }
 
 // 获取 SSL 证书的过期时间
@@ -61,24 +64,44 @@ func checkExpiry(domain string) string {
 	daysRemaining := int(expiryDate.Sub(currentTime).Hours() / 24)
 
 	if daysRemaining <= 15 {
-		return fmt.Sprintf("### **告警通知: SSL证书即将过期**\n\n#### 状态: 待处理\n\n#### 证书详情：\n- 检查时间: `%s`\n- 域名: [%s](https://%s)\n- 剩余天数: `%d` 天\n- 过期时间: `%s`\n- 提醒: 请及时更新证书。\n", currentTime.Format(time.DateTime), domain, domain, daysRemaining, expiryDate.Format(time.DateTime))
+		return fmt.Sprintf("### **告警通知: SSL证书即将过期**\n\n#### 状态: 待处理\n\n#### 证书详情：\n- 检查时间: `%s`\n- 域名: [%s](https://%s)\n-  剩余天数: `%d` 天\n- 过期时间: `%s`\n- 提醒: 请及时更新证书。\n", currentTime.Format(time.DateTime), domain, domain, daysRemaining, expiryDate.Format(time.DateTime))
 	}
 	return ""
 }
 
+// 读取 YAML 配置文件
+func loadConfig(path string) (*Config, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var config Config
+	err = yaml.Unmarshal(data, &config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &config, nil
+}
+
 func main() {
-	// 初始化日志记录
 	initLogger()
 
-	// 测试群钉钉配置
-	webhookURL := "https://oapi.dingtalk.com/robot/send?access_token=606800eb6413d83a0b42a"
-	secret := "SEC7e7bc8109e21133b3fe90d853d584ad311b2f6"
+	// 加载配置文件
+	config, err := loadConfig(configPath)
+	if err != nil {
+		log.Fatalf("加载配置文件失败: %v", err)
+	}
 
-	atMobiles := []string{"19****42"} // 艾特指定手机号
-	isAtAll := false                  // 是否艾特所有人
+	// 使用配置中的钉钉参数
+	webhookURL := config.DingTalk.WebhookURL
+	secret := config.DingTalk.Secret
+	atMobiles := config.DingTalk.AtMobiles
+	isAtAll := config.DingTalk.IsAtAll
 
-	// 循环检查每个域名的证书
-	for _, domain := range domains {
+	// 检查每个域名
+	for _, domain := range config.Domains {
 		warning := checkExpiry(domain)
 		if warning != "" {
 			title := "证书过期提醒"
