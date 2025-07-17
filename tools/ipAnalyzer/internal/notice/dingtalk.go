@@ -3,6 +3,7 @@ package notice
 import (
 	"bytes"
 	"fmt"
+	"ipAnalyzer/internal/entity"
 	"net/http"
 	"time"
 )
@@ -13,14 +14,15 @@ var (
 )
 
 // SendDingTalkAlert 发送钉钉告警消息
-func SendDingTalkAlert(webhookURL, ip, location string, isp string, project string, count int) error {
-	timestamp := time.Now().Format(time.DateTime)
+func SendDingTalkAlert(webhookURL, ip, location string, isp string, project string, count int, threshold entity.ThresholdConfig) error {
+	execTime := time.Now().Format("15:04:01")
+	actTime := time.Now().Add(-5 * time.Minute).Format("15:04:01")
 
-	// 判断级别并设置对应内容
-	if count >= 500 {
+	var title, level string
+	if count >= threshold.Alert {
 		title = "告警通知"
 		level = "告警"
-	} else if count >= 230 {
+	} else if count >= threshold.Warning {
 		title = "事件通知"
 		level = "提醒"
 	} else {
@@ -32,12 +34,12 @@ func SendDingTalkAlert(webhookURL, ip, location string, isp string, project stri
     "msgtype": "markdown",
     "markdown": {
         "title": "异常IP告警",
-        "text": "### **%s: %s 异常IP %s**\n#### 状态: 待处理\n- 五分钟内访问: %d次\n- IP地址: %s\n- 地理位置: %s\n- 运营商: %s\n- 执行时间: %s\n- [查看详情判断是否处理](https://iplark.com/%s )",
+        "text": "### **%s: %s 异常IP %s**\n#### 状态: 待处理\n- 异常时间段: %s/%s\n- 异常期访问: %d次\n- IP地址: %s\n- 地理位置: %s\n- 运营商: %s\n- [点击判断是否介入处理](https://iplark.com/%s )",
         "at": {
             "isAtAll": true
         }
     }
-}`, title, project, level, count, ip, location, isp, timestamp, ip)
+}`, title, project, level, actTime, execTime, count, ip, location, isp, ip)
 
 	req, err := http.NewRequest("POST", webhookURL, bytes.NewBuffer([]byte(msg)))
 	if err != nil {

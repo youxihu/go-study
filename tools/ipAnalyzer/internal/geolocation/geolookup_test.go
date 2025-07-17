@@ -1,6 +1,7 @@
 package geolocation
 
 import (
+	"ipAnalyzer/internal/entity"
 	"testing"
 )
 
@@ -31,10 +32,14 @@ func TestLookupLocationWithCount(t *testing.T) {
 	projectType := "TestProject"
 	webhookURL := ""
 	whiteList := []string{}
+	thresholds := entity.ThresholdConfig{
+		Alert:   500,
+		Warning: 230,
+	}
 
 	// 对每个 IP 执行 LookupLocationWithCount
 	for _, ip := range testIPs {
 		t.Logf("正在测试 IP: %s", ip)
-		LookupLocationWithCount(ip, 1, asnDBPath, cityDBPath, projectType, webhookURL, whiteList)
+		LookupLocationWithCount(ip, 1, asnDBPath, cityDBPath, projectType, webhookURL, whiteList, thresholds)
 	}
 }

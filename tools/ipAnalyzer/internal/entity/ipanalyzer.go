@@ -1,13 +1,20 @@
 package entity
 
 type Config struct {
-	DBFilePath struct {
-		IP2RegionDBPath string `yaml:"ip2regionDBPath"`
-		ASNDBPath       string `yaml:"asnDBPath"`
-		CITYDBPath      string `yaml:"cityDBPath"`
-	} `yaml:"dbfilepath"`
+	DBFilePath      DBFilePath      `yaml:"dbFilepath"`
+	LogFilesPath    []string        `yaml:"logFilesPath"`
+	DingTalkWebhook string          `yaml:"dingTalkWebhook"`
+	WhiteList       []string        `yaml:"whiteList"`
+	Thresholds      ThresholdConfig `yaml:"thresholds"`
+}
 
-	LogFilesPath    []string `yaml:"logFilesPath"`
-	DingTalkWebhook string   `yaml:"dingTalkWebhook"`
-	WhiteList       []string `yaml:"whiteList"`
+type DBFilePath struct {
+	IP2RegionDBPath string `yaml:"ip2regionDBPath"`
+	ASNDBPath       string `yaml:"asnDBPath"`
+	CITYDBPath      string `yaml:"cityDBPath"`
+}
+
+type ThresholdConfig struct {
+	Alert   int `yaml:"alert"`
+	Warning int `yaml:"warning"`
 }

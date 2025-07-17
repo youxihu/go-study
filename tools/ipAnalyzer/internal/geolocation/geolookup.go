@@ -3,6 +3,7 @@ package geolocation
 import (
 	"fmt"
 	"github.com/oschwald/maxminddb-golang"
+	"ipAnalyzer/internal/entity"
 	"ipAnalyzer/internal/notice"
 	"log"
 	"net"
@@ -174,7 +175,7 @@ func shouldSendAlert(country string, ip string, whiteList []string) bool {
 	return !JudgeWhiteList(ip, whiteList)
 }
 
-func LookupLocationWithCount(ipStr string, count int, asnDBPath string, cityDBPath string, projectType string, webhookURL string, whiteList []string) {
+func LookupLocationWithCount(ipStr string, count int, asnDBPath string, cityDBPath string, projectType string, webhookURL string, whiteList []string, threshold entity.ThresholdConfig) {
 	ip := net.ParseIP(ipStr)
 	if ip == nil {
 		log.Printf("Invalid IP address: %s", ipStr)
@@ -281,7 +282,7 @@ func LookupLocationWithCount(ipStr string, count int, asnDBPath string, cityDBPa
 	log.Printf("%3d次 %s  %s|%s|%s|%s\n", count, ipStr, country, province, city, detailedISP)
 
 	if shouldSendAlert(country, ipStr, whiteList) {
-		err := notice.SendDingTalkAlert(webhookURL, ipStr, location, detailedISP, projectType, count)
+		err := notice.SendDingTalkAlert(webhookURL, ipStr, location, detailedISP, projectType, count, threshold)
 		if err != nil {
 			log.Printf("⚠️ 发送钉钉告警失败: %v\n", err)
 		}

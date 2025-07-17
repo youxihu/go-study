@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"ipAnalyzer/internal/entity"
 	"ipAnalyzer/internal/ipstat"
 	"ipAnalyzer/internal/logparser"
 	"log"
@@ -9,11 +10,10 @@ import (
 )
 
 const (
-	ipThreshold    = 230             // 异常访问次数阈值
 	windowDuration = 5 * time.Minute // 时间窗口
 )
 
-func ProcessLogFile(logFile string, wg *sync.WaitGroup, resultChan chan<- []ipstat.IPStat) {
+func ProcessLogFile(logFile string, wg *sync.WaitGroup, resultChan chan<- []ipstat.IPStat, thresholds entity.ThresholdConfig) {
 	defer wg.Done()
 
 	log.Printf("正在分析日志文件: %s\n", logFile)
@@ -28,8 +28,8 @@ func ProcessLogFile(logFile string, wg *sync.WaitGroup, resultChan chan<- []ipst
 		return
 	}
 
-	// 2. 获取异常 IP
-	anomalyIPs := ipstat.GetAnomalyIPs(entries, ipThreshold, windowDuration)
+	// 2. 获取异常 IP（使用配置中的阈值）
+	anomalyIPs := ipstat.GetAnomalyIPs(entries, thresholds, windowDuration)
 	if len(anomalyIPs) == 0 {
 		log.Printf("[%s] 未发现异常 IP\n", logFile)
 		return

@@ -41,7 +41,7 @@ func RunAnalysis() {
 	// 启动多个 goroutine 处理日志文件
 	for _, logFile := range appConfig.LogFilesPath {
 		wg.Add(1)
-		go ProcessLogFile(logFile, &wg, resultChan)
+		go ProcessLogFile(logFile, &wg, resultChan, appConfig.Thresholds)
 	}
 
 	// 等待所有 goroutine 完成
@@ -53,7 +53,7 @@ func RunAnalysis() {
 	// 收集中间结果并发送通知
 	for anomalyIPs := range resultChan {
 		for _, item := range anomalyIPs {
-			geolocation.LookupLocationWithCount(item.IP, item.Count, appConfig.DBFilePath.ASNDBPath, appConfig.DBFilePath.CITYDBPath, item.ProjectType, appConfig.DingTalkWebhook, appConfig.WhiteList)
+			geolocation.LookupLocationWithCount(item.IP, item.Count, appConfig.DBFilePath.ASNDBPath, appConfig.DBFilePath.CITYDBPath, item.ProjectType, appConfig.DingTalkWebhook, appConfig.WhiteList, appConfig.Thresholds)
 		}
 	}
 	log.Println("所有日志文件分析完成")
