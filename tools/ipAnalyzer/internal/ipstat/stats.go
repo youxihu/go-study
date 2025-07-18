@@ -22,10 +22,12 @@ func (a ByCount) Less(i, j int) bool { return a[i].Count > a[j].Count }
 
 func GetErrorLevel(count int, thresholds entity.ThresholdConfig) string {
 	switch {
-	case count >= thresholds.Alert:
+	case count >= thresholds.Alert && count < thresholds.Error:
 		return "alert"
 	case count >= thresholds.Warning:
 		return "warning"
+	case count >= thresholds.Error:
+		return "error"
 	default:
 		return "info"
 	}
@@ -48,7 +50,7 @@ func GetAnomalyIPs(entries []logparser.LogEntry, thresholds entity.ThresholdConf
 	for ip, count := range ipStats {
 		level := GetErrorLevel(count, thresholds)
 
-		if level == "warning" || level == "alert" {
+		if level == "warning" || level == "alert" || level == "error" {
 			anomalyIPs = append(anomalyIPs, IPStat{
 				IP:    ip,
 				Count: count,

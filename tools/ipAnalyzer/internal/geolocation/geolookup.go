@@ -5,6 +5,7 @@ import (
 	"github.com/oschwald/maxminddb-golang"
 	"ipAnalyzer/internal/entity"
 	"ipAnalyzer/internal/notice"
+	"ipAnalyzer/pkg/nginx"
 	"log"
 	"net"
 	"os"
@@ -282,6 +283,12 @@ func LookupLocationWithCount(ipStr string, count int, asnDBPath string, cityDBPa
 	log.Printf("%3d次 %s  %s|%s|%s|%s\n", count, ipStr, country, province, city, detailedISP)
 
 	if shouldSendAlert(country, ipStr, whiteList) {
+		if count >= threshold.Alert {
+			err := nginx.BlockAttackerIP(ipStr)
+			if err != nil {
+				log.Printf("❌ 封禁 IP 失败: %v", err)
+			}
+		}
 		err := notice.SendDingTalkAlert(webhookURL, ipStr, location, detailedISP, projectType, count, threshold)
 		if err != nil {
 			log.Printf("⚠️ 发送钉钉告警失败: %v\n", err)

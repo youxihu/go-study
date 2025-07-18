@@ -17,4 +17,5 @@ type DBFilePath struct {
 type ThresholdConfig struct {
 	Alert   int `yaml:"alert"`
 	Warning int `yaml:"warning"`
+	Error   int `yaml:"error"`
 }

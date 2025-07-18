@@ -12,7 +12,7 @@ import (
 
 func RunAnalysis() {
 	// 1. 加载 Nacos 认证配置
-	nacosConfig, err := nacos.LoadNacosAuth("/home/youxihu/secret/aiops/ipanalyzer/localtest_nacos_auth.yaml")
+	nacosConfig, err := nacos.LoadNacosAuth("/home/youxihu/secret/aiops/ipanalyzer/nacos_auth.yaml")
 	if err != nil {
 		log.Fatalf("加载 Nacos 认证失败: %v", err)
 	}
