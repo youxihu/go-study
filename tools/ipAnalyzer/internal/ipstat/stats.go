@@ -22,12 +22,12 @@ func (a ByCount) Less(i, j int) bool { return a[i].Count > a[j].Count }
 
 func GetErrorLevel(count int, thresholds entity.ThresholdConfig) string {
 	switch {
-	case count >= thresholds.Alert && count < thresholds.Error:
+	case count >= thresholds.Error:
+		return "error"
+	case count >= thresholds.Alert:
 		return "alert"
 	case count >= thresholds.Warning:
 		return "warning"
-	case count >= thresholds.Error:
-		return "error"
 	default:
 		return "info"
 	}
